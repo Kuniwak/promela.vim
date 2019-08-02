@@ -27,14 +27,21 @@ syntax case match
 
 
 " Some usefull Promela keywords
-syn keyword	promStatement		goto break never skip timeout of
-syn keyword	promStatement		atomic d_step
-syn keyword	promOperator		len printf run
-syn keyword	promFunction		proctype init
-syn keyword	promConditional		if fi assert
+syn keyword	promStatement		goto break skip timeout atomic d_step inline
+syn keyword	promOperator		of
+syn match	promBinOperator		"[<>+=;&^|!*%-]\|??\|!!\|->\|[=<>]=\|>>\|<<"
+syn keyword     promAttribute		active hidden show
+syn keyword	promBuiltinFunc		printf run
+syn keyword	promFunction		proctype init never trace notrace
+syn keyword	promConditional		if fi assert else
 syn keyword	promRepeat		do od
 syn keyword	promType		bool bit byte short int
-syn keyword	promType		chan mtype
+syn keyword	promType		chan mtype typedef
+
+
+" Labels
+syn match       promLabel		display "^[a-zA-Z_][a-zA-Z_0-9]*:" contains=promSpecialLabel
+syn match       promSpecialLabel	display "^\(end\|progress\|accept\)[a-zA-Z_0-9]*:" contained
 
 
 " Adding matches for special strings in comments
@@ -43,8 +50,7 @@ syn cluster	cCommentGroup	contains=cTodo
 
 
 " Some special character strings used
-syn match	promFlags	"::\|->"
-syn match	promCommands	"!\|?"
+syn match	promOptions	"^\s*::"
 
 
 " Integer numbers (for both '-' and '+')
@@ -59,18 +65,18 @@ syn region	promString	start=+"+ skip=+\\"+ end=+"+ contains=promFormat
 
 
 " For C-like comments (comments cannot be nested)
-syn region	promComment	start="/\*" end="\*/" contains=promTodo
+syn region	promComment		start="/\*" end="\*/" contains=promTodo
 syn match	promCommentError	"\*/"
-syn sync 	ccomment promComment 	minlines=30
-syn region	promCommentL	start="//" skip="\\$" end="$" keepend contains=promTodo
+syn sync 	ccomment 		promComment 	minlines=30
+syn region	promComment		start="//" skip="\\$" end="$" keepend contains=promTodo
 
 
 " Initialize useful constants
-syn keyword	promConstant	true false TRUE FALSE
+syn keyword	promConstant	true false TRUE FALSE _ _last _nr_pr _pid np_ STDIN
 
 
-" Define derivitive (very C-like)
-syn region	promDefine	start="^\s*#\s*\(define\)\>" skip="\\$" end="$" end="//"me=s-1
+" Macros (very C-like)
+syn region	promMacro	start="^\s*#\s*\(define\|ifdef\|ifndef\|if\|else\|endif\|undef\|include\)\>" skip="\\$" end="$" end="//"me=s-1
 
 
 " Define the default highlighting.
@@ -83,15 +89,18 @@ if version >= 508 || !exists("did_c_syn_inits")
 	else
 		command -nargs=+ HiLink hi def link <args>
 	endif
-	HiLink promFlags		Function
-	HiLink promCommands		promSpecial
+	HiLink promOptions		Function
+	HiLink promPanctuation		Function
+	HiLink promCommands		Operator
 	HiLink promFunction		promType
+	HiLink promAttribute		promFunction
 	HiLink promFormat		promSpecial
 	HiLink promConditional		Conditional
 	HiLink promRepeat		Repeat
 	HiLink promNumber		Number
 	HiLink promOperator		Operator
-	HiLink promDefine		Macro
+	HiLink promBinOperator		Operator
+	HiLink promMacro		Macro
 	HiLink promSartCommentError	promError
 	HiLink promCommentError		promError
 	HiLink promError		Error
@@ -102,6 +111,9 @@ if version >= 508 || !exists("did_c_syn_inits")
 	HiLink promComment		Comment
 	HiLink promSpecial		SpecialChar
 	HiLink promTodo			Todo
+	HiLink promLabel		Macro
+	HiLink promSpecialLabel		Statement
+	HiLink promReservedSymbol	Operator
 	delcommand HiLink
 endif
 
